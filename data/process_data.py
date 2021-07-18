@@ -103,6 +103,9 @@ def clean_data(df):
     bitly_regex = r'(?:http.)*(?:www.)*bit.ly .*\s{,1}'
     df['message'] = df['message'].str.replace(bitly_regex, 'urlplaceholder', regex=True)
     
+    # change half child_alone labels to 1 in order to avoid errors during training
+    df['child_alone'] = np.where(df.index <= df.shape[0]//2, 1, 0)
+    
     return df
 
 def save_data(df, database_filename):
