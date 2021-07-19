@@ -14,6 +14,7 @@ from nltk.corpus import words, stopwords
 from nltk.tokenize import word_tokenize
 
 def load_data(messages_filepath, categories_filepath):
+    """Function to load and merge messages and categories data."""
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories, on='id')
@@ -21,12 +22,14 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def check_english_word(word, english_words):
+    """Function to check if a word is english."""
     if word in english_words:
         return True
     else:
         return False
     
 def check_english_sent(sent, english_words):
+    """Function to check if a sentence is written in english."""
     results = []
     for token in word_tokenize(sent.lower()):
         if len(token) > 1:
@@ -35,6 +38,7 @@ def check_english_sent(sent, english_words):
 
 
 def clean_data(df):
+    """Function clean and prepare data for machine learning."""
     # create a dataframe of the 36 individual category columns
     categories = df['categories'].str.split(';', expand=True)
     
@@ -90,6 +94,9 @@ def clean_data(df):
         # append new id_ row
         df = df.append(df_id, ignore_index=True)
         
+    # replace 2 labels in related column with 0
+    df['related'] = df['related'].replace(2, 0)
+        
     # drop non-english messages
     english_words = set(words.words())    
     is_english = df['message'].apply(lambda x: check_english_sent(x, english_words))
@@ -109,6 +116,7 @@ def clean_data(df):
     return df
 
 def save_data(df, database_filename):
+    """Function to save dataframe into a table in a specified sql database."""
     engine = create_engine(f'sqlite:///{database_filename}')
     df.to_sql('clean', engine, if_exists='replace', index=False)      
 

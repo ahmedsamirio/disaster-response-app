@@ -19,7 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, make_scorer
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, make_scorer, classification_report
 
 from skmultilearn.model_selection import IterativeStratification
 from skmultilearn.model_selection import iterative_train_test_split
@@ -37,7 +37,8 @@ def load_data(database_filepath):
     df = pd.read_sql_table('clean', engine)
     X = df['message']
     y = df.iloc[:, 4:]
-    return X.values, y.values, y.columns.tolist()
+
+    return X, y, y.columns.tolist()
 
 
 def tokenize(text):
@@ -65,20 +66,19 @@ def iterative_train_test_split(X, y, train_size):
 
 
 def build_model(X_train, y_train):
+    """Function to find best model parameters using sklearn's GridSearchCV.'"""
     pipeline = Pipeline([
-            ('vect', CountVectorizer()),
-            ('tfidf', TfidfTransformer()),
-            ('clf', MultiOutputClassifier(BalancedRandomForestClassifier(random_state=seed)))
+        ('vect', CountVectorizer(ngram_range=(1, 1))),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(BalancedRandomForestClassifier(n_estimators=10,random_state=seed)))
     ])
     
     parameters = {
-    'clf__estimator__n_estimators': [10, 30, 50, 100],
+    'clf__estimator__n_estimators': [10],
     }
-    
+#    scorer = make_scorer(f1_score, average = 'weighted')
     mskf = MultilabelStratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
-    
-    scorer = make_scorer(sklearn.metrics.f1_score, average = 'weighted')
-    cv = GridSearchCV(pipeline, parameters, cv=mskf, verbose=3, scoring=scorer)
+    cv = GridSearchCV(pipeline, parameters, cv=mskf, verbose=3, scoring='f1_weighted')
     cv.fit(X_train, y_train)  
     
     print("Best Parameters:", cv.best_params_, "\nBest Score:", cv)
@@ -86,11 +86,20 @@ def build_model(X_train, y_train):
     return pipeline.set_params(**cv.best_params_)
 
 
-def evaluate_model(model, X_test, Y_test, category_names):
+
+def evaluate_model(model, X_test, y_test, category_names):
+    """
+    Function to evaluate model using classification report separately on labels, and 
+    major scores weighted by label support on all labels such as precision, recall and accuracy.
+    """
     y_pred = model.predict(X_test) 
     
     # change all child_alone predicted labels to 0
     y_pred[:, 13] = 0
+    
+    print('X_test shape:', X_test.shape)
+    print('y_test shape:', y_test.shape)
+    print('y_pred shape:', y_pred.shape)
     
     print(classification_report(y_test, y_pred, target_names=category_names))
     
@@ -104,6 +113,7 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """Function to save model using pickle to a specified filepath."""
     pickle.dump(model, open(model_filepath, 'wb')) 
 
 
@@ -112,16 +122,17 @@ def main():
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
         X, y, category_names = load_data(database_filepath)
-        X_train, X_test, y_train, y_test = iterative_train_test_split(X, y, train_size=0.8)
+        
+        X_train, X_test, y_train, y_test = iterative_train_test_split(X.values, y.values, train_size=0.8)
         
         print('Building model...')
         model = build_model(X_train, y_train)
         
         print('Training model...')
-        model.fit(X_train, Y_train)
+        model.fit(X_train, y_train)
         
         print('Evaluating model...')
-        evaluate_model(model, X_test, Y_test, category_names)
+        evaluate_model(model, X_test, y_test, category_names)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
