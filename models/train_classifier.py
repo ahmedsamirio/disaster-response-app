@@ -70,19 +70,19 @@ def build_model(X_train, y_train):
     pipeline = Pipeline([
         ('vect', CountVectorizer(ngram_range=(1, 1))),
         ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(BalancedRandomForestClassifier(n_estimators=10,random_state=seed)))
+        ('clf', MultiOutputClassifier(BalancedRandomForestClassifier(random_state=seed)))
     ])
     
     parameters = {
-    'clf__estimator__n_estimators': [10],
+    'clf__estimator__n_estimators': [50],
+    'clf__estimator__max_features': ['auto', 0.3],
     }
 #    scorer = make_scorer(f1_score, average = 'weighted')
     mskf = MultilabelStratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
     cv = GridSearchCV(pipeline, parameters, cv=mskf, verbose=3, scoring='f1_weighted')
-    cv.fit(X_train, y_train)  
+    cv.fit(X_train, y_train)
     
-    print("Best Parameters:", cv.best_params_, "\nBest Score:", cv)
-  
+    print("Best Parameters:", cv.best_params_, "\nBest Score:", cv.best_score_)
     return pipeline.set_params(**cv.best_params_)
 
 
@@ -103,8 +103,8 @@ def evaluate_model(model, X_test, y_test, category_names):
     
     print(classification_report(y_test, y_pred, target_names=category_names))
     
-    precision = precision_score(y_test, y_pred, average='samples')
-    recall = recall_score(y_test, y_pred, average='samples')
+    precision = precision_score(y_test, y_pred, average='weighted')
+    recall = recall_score(y_test, y_pred, average='weighted')
     accuracy = accuracy_score(y_test, y_pred)
 
     print('Precision:', precision)

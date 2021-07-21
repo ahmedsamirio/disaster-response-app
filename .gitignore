@@ -1,1 +1,4 @@
 disasterenv/
+models/classifier.pkl
+*.ipynb
+*.db
