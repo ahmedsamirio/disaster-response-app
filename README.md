@@ -15,20 +15,25 @@ The dataset was severly imbalanced in most of the labels, therefore I opted for 
 
 ## File Descriptions
 
-`data/disaster_messages.csv` contains the original dataset of messages
-`data/disaster_categories.csv` contains the classification labels of messages
-`data/DisasterResponse.db` is an SQL database containing the cleaned data use for ML pipeline.
-The ETL pipeline can be found in `data/process_data.py` and the ML pipeline can be found in `models/train_classifier.py`
+* `data/disaster_messages.csv` contains the original dataset of messages
+* `data/disaster_categories.csv` contains the classification labels of messages
+* `data/DisasterResponse.db` is an SQL database containing the cleaned data use for ML pipeline.
+* The ETL pipeline can be found in `data/process_data.py` 
+* The ML pipeline can be found in `models/train_classifier.py`
 
 ## What Can You Do With The Project?
 
 To run the webapp you have:
-1. run the ETL pipeline that cleans and processes that data use `python data/process_data.py data/disaster_messages.py data/disaster_categories.py data/DisasterResponse.db`
-2. run the ML pipeline which trains and saves the classifier use `python models/train_classifier.py data/DisasterResponse.db models/classifier`
+1. run the ETL pipeline that cleans and processes that data use 
+
+`python data/process_data.py data/disaster_messages.py data/disaster_categories.py data/DisasterResponse.db`
+2. run the ML pipeline which trains and saves the classifier use 
+
+`python models/train_classifier.py data/DisasterResponse.db models/classifier`
 3. Then run the web app run `python run.py` in the commandline and then go to http://0.0.0.0:3001/
 
-You can improve the results of my model by tweaking hyperparameters or the changing the model itself in `models/train_classifier.py`. 
 
-You can also use improve upon the ETL pipeline which is found in `data/process_data.py`.
+* You can improve the results of my model by tweaking hyperparameters or the changing the model itself in `models/train_classifier.py`. 
+* You can also use improve upon the ETL pipeline which is found in `data/process_data.py`.
 
 
