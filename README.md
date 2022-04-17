@@ -25,11 +25,13 @@ The dataset was severly imbalanced in most of the labels, therefore I opted for 
 
 To run the webapp you have:
 1. run the ETL pipeline that cleans and processes that data use 
-
 `python data/process_data.py data/disaster_messages.py data/disaster_categories.py data/DisasterResponse.db`
-2. run the ML pipeline which trains and saves the classifier use 
 
+
+2. run the ML pipeline which trains and saves the classifier use 
 `python models/train_classifier.py data/DisasterResponse.db models/classifier`
+
+
 3. Then run the web app run `python run.py` in the commandline and then go to http://0.0.0.0:3001/
 
 
